@@ -1,29 +1,30 @@
 -- Lutro Mega Input Library
 -- Written by Juno Nguyen
 -- For Libretro Lutro
--- Version 0.1
+-- Version 0.2
+
+-- The full reference of list of supported buttons on a gamepad and their corresponding keycodes
+local KEYS = {
+    up = 5,
+    down = 6,
+    left = 7,
+    right = 8,
+    a = 9,
+    b = 1,
+    x = 10,
+    y = 2,
+    select = 3,
+    start = 4,
+    l1 = 11,
+    r1 = 12,
+    l2 = 13,
+    r2 = 14,
+    l3 = 15,
+    r3 = 16,
+}
 
 lmi = {
     _version = 0.1,
-    -- The full reference of list of supported buttons on a gamepad and their corresponding keycodes
-    KEYS = {
-        up = 5,
-        down = 6,
-        left = 7,
-        right = 8,
-        a = 9,
-        b = 1,
-        x = 10,
-        y = 2,
-        select = 3,
-        start = 4,
-        l1 = 11,
-        r1 = 12,
-        l2 = 13,
-        r2 = 14,
-        l3 = 15,
-        r3 = 16,
-    },
     keyData = {},
     padCount = 1, -- The number of controllers currently being updated
 }
@@ -57,11 +58,11 @@ function lmi:init(configs)
 
         for _, keycode in pairs(configs.keys) do
 
-            if self.KEYS[keycode] == nil then
+            if KEYS[keycode] == nil then
                 error(keycode..' is not a valid button keycode', 2)
             end
 
-            self.keyData[pid][keycode] = {
+            self.keyData[pid][KEYS[keycode]] = {
                 isDown = false,
                 justPressed = false,
                 justReleased = false,
@@ -83,7 +84,7 @@ function lmi:update()
                 keyStateData.justReleased = false
 
                 -- Wiping is completed when key is released
-                if not lutro.joystick.isDown(pid, self.KEYS[keycode]) then
+                if not lutro.joystick.isDown(pid, keycode) then
                     keyStateData.isWiping = false
                 end
 
@@ -92,17 +93,17 @@ function lmi:update()
 
                 -- The mismatched states of keyState.isDown and lutro.joystick.isDown indicate a new change, a button is just pressed or released
                 -- justPresesd or justReleased value will be changed for the rest of this frame and the early portion of the next frame
-                if not keyStateData.isDown and lutro.joystick.isDown(pid, self.KEYS[keycode]) then
+                if not keyStateData.isDown and lutro.joystick.isDown(pid, keycode) then
                     keyStateData.justPressed = true
-                elseif keyStateData.isDown and not lutro.joystick.isDown(pid, self.KEYS[keycode]) then
+                elseif keyStateData.isDown and not lutro.joystick.isDown(pid, keycode) then
                     keyStateData.justReleased = true
                 -- Otherwise matching states indicate that the button is already stabilised in this frame, meaing that justPressed and justReleased are no longer valid
-                elseif keyStateData.isDown == lutro.joystick.isDown(pid, self.KEYS[keycode]) then
+                elseif keyStateData.isDown == lutro.joystick.isDown(pid, keycode) then
                     keyStateData.justPressed = false
                     keyStateData.justReleased = false
                 end
                 
-                keyStateData.isDown = lutro.joystick.isDown(pid, self.KEYS[keycode])
+                keyStateData.isDown = lutro.joystick.isDown(pid, keycode)
             end
 
         end
@@ -123,10 +124,10 @@ end
 -- Whether the button is being held down in the current frame.
 function lmi:isDown(keycode, pid)
     if pid then
-        return self.keyData[pid][keycode].isDown
+        return self.keyData[pid][KEYS[keycode]].isDown
     else
         for ipid = 1, self.padCount do
-            if self.keyData[ipid][keycode].isDown then return true end
+            if self.keyData[ipid][KEYS[keycode]].isDown then return true end
         end
 
         return false
@@ -136,10 +137,10 @@ end
 -- Whether this button has just been pressed. The will return true for only one frame.
 function lmi:justPressed(keycode, pid)
     if pid then
-        return self.keyData[pid][keycode].justPressed
+        return self.keyData[pid][KEYS[keycode]].justPressed
     else
         for ipid = 1, self.padCount do
-            if self.keyData[ipid][keycode].justPressed then return true end
+            if self.keyData[ipid][KEYS[keycode]].justPressed then return true end
         end
 
         return false
@@ -149,10 +150,10 @@ end
 -- Whether this button has just been released. The will return true for only one frame.
 function lmi:justReleased(keycode, pid)
     if pid then
-        return self.keyData[pid][keycode].justReleased
+        return self.keyData[pid][KEYS[keycode]].justReleased
     else
         for ipid = 1, self.padCount do
-            if self.keyData[ipid][keycode].justReleased then return true end
+            if self.keyData[ipid][KEYS[keycode]].justReleased then return true end
         end
  
         return false
