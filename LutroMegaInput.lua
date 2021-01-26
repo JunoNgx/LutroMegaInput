@@ -3,8 +3,10 @@
 -- For Libretro Lutro
 -- Version 0.2
 
--- The full reference of list of supported buttons on a gamepad and their corresponding keycodes
+-- The full reference of list of supported buttons on a gamepad and their
+-- corresponding keycodes
 local KEYS = {
+    -- keycode = keyId
     up = 5,
     down = 6,
     left = 7,
@@ -26,15 +28,21 @@ local KEYS = {
 lmi = {
     _version = 0.1,
     keyData = {},
+    keyIdsInUse = {},
     padCount = 1, -- The number of controllers currently being updated
 }
 lmi.__index = lmi
 
 -- Initialise the configuration
--- configs: (table, optional) indicate the settings of the should contain the following keys:
---  keys: (an array of strings, optional), containing that keys to the buttons that the game would use, corresponding to the reference listed above. If omitted, will use all the available keys the list.
---  padCount: (number, optional) the number of controllers. Can be changed mid-game. If omitted, will be 1 by default.
+-- configs: (table, optional) indicate the settings of the should contain the
+-- following keys:
+--  * keys: (an array of strings, optional), containing that keys to the buttons
+--  that the game would use, corresponding to the reference listed above. If
+--  omitted, will use all the available keys the list.
+--  * padCount: (number, optional) the number of controllers. Can be changed
+--  mid-game. If omitted, will be 1 by default.
 -- A lower of number of keys and controllers will expectedly improve performance.
+-- (in a minutae way)
 function lmi:init(configs)
 
     local default_keys = {
@@ -48,33 +56,24 @@ function lmi:init(configs)
     if not configs.keys then configs.keys = default_keys end
     if not configs.padCount then configs.padCount = 1 end
 
-    -- Set the number of controllers
-    self:setPadCount(configs.padCount)
+    for _, keycode in pairs(configs.keys) do
 
-    -- Create the table of keys and their state data for each controller
-    for pid = 1, self.padCount do
-
-        self.keyData[pid] = {}
-
-        for _, keycode in pairs(configs.keys) do
-
-            if KEYS[keycode] == nil then
-                error(keycode..' is not a valid button keycode', 2)
-            end
-
-            self.keyData[pid][KEYS[keycode]] = {
-                isDown = false,
-                justPressed = false,
-                justReleased = false,
-                isWiping = false
-            }
+        -- Validating declared keycodes
+        if KEYS[keycode] == nil then
+            error(keycode..' is not a valid button keycode', 2)
         end
+
+        -- Store these declared keys for keyData initialisation
+        self.keyIdsInUse = configs.keys
     end
+
+    -- Set the number of controllers and create data
+    self:setPadCount(configs.padCount)
 end
 
 function lmi:update()
     for pid = 1, self.padCount do
-        for keycode, keyStateData in pairs(self.keyData[pid]) do
+        for keyId, keyStateData in pairs(self.keyData[pid]) do
 
             if keyStateData.isWiping then
                 -- Disable input while wiping
@@ -84,42 +83,67 @@ function lmi:update()
                 keyStateData.justReleased = false
 
                 -- Wiping is completed when key is released
-                if not lutro.joystick.isDown(pid, keycode) then
+                if not lutro.joystick.isDown(pid, keyId) then
                     keyStateData.isWiping = false
                 end
 
             else
                 -- Regular updates occur here
 
-                -- The mismatched states of keyState.isDown and lutro.joystick.isDown indicate a new change, a button is just pressed or released
-                -- justPresesd or justReleased value will be changed for the rest of this frame and the early portion of the next frame
-                if not keyStateData.isDown and lutro.joystick.isDown(pid, keycode) then
+                -- The mismatched states of keyState.isDown and lutro.joystick.isDown
+                -- indicate a new change, a button is just pressed or released
+                -- justPresesd or justReleased value will be changed for the rest
+                -- of this frame and the early portion of the next frame
+                if not keyStateData.isDown and lutro.joystick.isDown(pid, keyId) then
                     keyStateData.justPressed = true
-                elseif keyStateData.isDown and not lutro.joystick.isDown(pid, keycode) then
+                elseif keyStateData.isDown and not lutro.joystick.isDown(pid, keyId) then
                     keyStateData.justReleased = true
-                -- Otherwise matching states indicate that the button is already stabilised in this frame, meaing that justPressed and justReleased are no longer valid
-                elseif keyStateData.isDown == lutro.joystick.isDown(pid, keycode) then
+                -- Otherwise matching states indicate that the button is already
+                -- stabilised in this frame, meaing that justPressed and justReleased
+                -- are no longer valid
+                elseif keyStateData.isDown == lutro.joystick.isDown(pid, keyId) then
                     keyStateData.justPressed = false
                     keyStateData.justReleased = false
                 end
                 
-                keyStateData.isDown = lutro.joystick.isDown(pid, keycode)
+                keyStateData.isDown = lutro.joystick.isDown(pid, keyId)
             end
 
         end
     end
 end
 
--- Change the pad count mid game
+-- Change the pad count mid-game
 -- Useful when the number of players changes
 -- newPadCount: (number) the new number of controllers. Cannot be lower than 1.
 function lmi:setPadCount(newPadCount)
     if newPadCount < 1 then error("ERROR: padCount for LMI cannot be lower than 1", 3) end
     self.padCount = newPadCount;
+
+    -- Create the table of keys and their state data for each controller
+    for pid = 1, self.padCount do
+
+        if self.keyData[pid] == nil then
+            self.keyData[pid] = {}
+
+            for _, keycode in pairs(self.keyIdsInUse) do
+
+                self.keyData[pid][KEYS[keycode]] = {
+                    isDown = false,
+                    justPressed = false,
+                    justReleased = false,
+                    isWiping = false
+                }
+            end
+        end
+    end
 end
 
 -- keycode: (string) the keycode of button as a string.
--- pid: (number, optional) the id of the controller. If omitted, any keypress event from any active controller (subjected to self.padCount) will register. This is intentionally useful in some scenarios, such as configuring the settings of a match, where all players should participate.
+-- pid: (number, optional) the id of the controller. If omitted, any keypress
+-- event from any active controller (subjected to self.padCount) will register.
+-- This is intentionally useful in some scenarios, such as configuring the
+-- settings of a match, where all players should participate.
 
 -- Whether the button is being held down in the current frame.
 function lmi:isDown(keycode, pid)
