@@ -7,22 +7,22 @@
 -- corresponding keycodes
 local KEYS = {
     -- keycode = keyId
-    up = 5,
-    down = 6,
-    left = 7,
-    right = 8,
-    a = 9,
-    b = 1,
-    x = 10,
-    y = 2,
-    select = 3,
-    start = 4,
-    l1 = 11,
-    r1 = 12,
-    l2 = 13,
-    r2 = 14,
-    l3 = 15,
-    r3 = 16,
+    up = 5,     UP = 5,     u = 5,      U = 5,
+    down = 6,   DOWN = 6,   d = 6,      D = 6,
+    left = 7,   LEFT = 7,   l = 7,      L = 7,
+    right = 8,  RIGHT = 8,  r = 8,      R = 8,
+    a = 9,      A = 9,
+    b = 1,      B = 1,
+    x = 10,     X = 10,
+    y = 2,      Y = 2,
+    select = 3, SELECT = 3,
+    start = 4,  START = 4,
+    l1 = 11,    L1 = 11,    lb = 11,    LB = 11,
+    r1 = 12,    R1 = 12,    rb = 12,    RB = 12,
+    l2 = 13,    L2 = 13,    lt = 12,    LT = 13,
+    r2 = 14,    R2 = 14,    rt = 14,    RT = 14,
+    l3 = 15,    L3 = 15,    ls = 15,    LS = 15,
+    r3 = 16,    R3 = 16,    rs = 16,    RS = 16,
 }
 
 lmi = {
@@ -139,11 +139,13 @@ function lmi:setPadCount(newPadCount)
     end
 end
 
--- keycode: (string) the keycode of button as a string.
+-- keycode: (string) the keycode of button as a string. Does not necessary have
+--  to correspond to the declared keys in the initialisation. As long as the keyId
+--  it refers to is the same, it is acceptable.
 -- pid: (number, optional) the id of the controller. If omitted, any keypress
--- event from any active controller (subjected to self.padCount) will register.
--- This is intentionally useful in some scenarios, such as configuring the
--- settings of a match, where all players should participate.
+--  event from any active controller (subjected to self.padCount) will register.
+--  This is intentionally useful in some scenarios, such as configuring the
+--  settings of a match, where all players should participate.
 
 -- Whether the button is being held down in the current frame.
 function lmi:isDown(keycode, pid)
@@ -179,12 +181,13 @@ function lmi:justReleased(keycode, pid)
         for ipid = 1, self.padCount do
             if self.keyData[ipid][KEYS[keycode]].justReleased then return true end
         end
- 
+
         return false
     end
 end
 
--- Initiate ignoring all keypress event until each button is released and repressed. This is particular useful for avoiding accidental triggers during state transitions.
+-- Initiate ignoring all keypress event until each button is released and repressed.
+-- This is particular useful for avoiding accidental triggers during state transitions.
 function lmi:wipeStates()
     for pid = 1, self.padCount do
         for _, keyStateData in pairs(self.keyData[pid]) do
