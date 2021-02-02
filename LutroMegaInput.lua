@@ -113,32 +113,6 @@ function lmi:update()
     end
 end
 
--- Change the pad count mid-game
--- Useful when the number of players changes
--- newPadCount: (number) the new number of controllers. Cannot be lower than 1.
-function lmi:setPadCount(newPadCount)
-    if newPadCount < 1 then error("ERROR: padCount for LMI cannot be lower than 1", 3) end
-    self.padCount = newPadCount;
-
-    -- Create the table of keys and their state data for each controller
-    for padId = 1, self.padCount do
-
-        if self.keyData[padId] == nil then
-            self.keyData[padId] = {}
-
-            for _, keycode in pairs(self.keyIdsInUse) do
-
-                self.keyData[padId][KEYS[keycode]] = {
-                    isDown = false,
-                    justPressed = false,
-                    justReleased = false,
-                    isWiping = false
-                }
-            end
-        end
-    end
-end
-
 -- keycode: (string) the keycode of button as a string. Does not necessary have
 --  to correspond to the declared keys in the initialisation. As long as the keyId
 --  it refers to is the same, it is acceptable.
@@ -184,6 +158,38 @@ function lmi:justReleased(keycode, padId)
 
         return false
     end
+end
+
+
+-- Change the pad count mid-game
+-- Useful when the number of players changes
+-- newPadCount: (number) the new number of controllers. Cannot be lower than 1.
+function lmi:setPadCount(newPadCount)
+    if newPadCount < 1 then error("ERROR: padCount for LMI cannot be lower than 1", 3) end
+    self.padCount = newPadCount;
+
+    -- Create the table of keys and their state data for each controller
+    for padId = 1, self.padCount do
+
+        if self.keyData[padId] == nil then
+            self.keyData[padId] = {}
+
+            for _, keycode in pairs(self.keyIdsInUse) do
+
+                self.keyData[padId][KEYS[keycode]] = {
+                    isDown = false,
+                    justPressed = false,
+                    justReleased = false,
+                    isWiping = false
+                }
+            end
+        end
+    end
+end
+
+-- Get the current number of pad count
+function lmi:getPadCount()
+    return self.padCount
 end
 
 -- Initiate ignoring all keypress event until each button is released and repressed.
