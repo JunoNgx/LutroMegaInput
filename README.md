@@ -118,22 +118,22 @@ It is possible to use multiple keycodes to refer to the same button on a control
 
 The table below provide a list of valid keycodes. Keycodes on the same row refer to the same button. Do be mindful of the capitalisation.
 
-`up` `UP` `u` `U`
-`down` `DOWN` `d` `D`
-`left` `LEFT` `l` `L`
-`right` `RIGHT` `r` `R`
-`a` `A`
-`b` `B`
-`x` `X`
-`y` `Y`
-`select` `SELECT`
-`start` `START`
-`l1` `L1` `lb` `LB`
-`r1` `R1` `rb` `RB`
-`l2` `L2` `lt` `LT`
-`r2` `R2` `rt` `RT`
-`l3` `L3` `ls` `LS`
-`r3` `R3` `rs` `RS`
+* `up` `UP` `u` `U`
+* `down` `DOWN` `d` `D`
+* `left` `LEFT` `l` `L`
+* `right` `RIGHT` `r` `R`
+* `a` `A`
+* `b` `B`
+* `x` `X`
+* `y` `Y`
+* `select` `SELECT`
+* `start` `START`
+* `l1` `L1` `lb` `LB`
+* `r1` `R1` `rb` `RB`
+* `l2` `L2` `lt` `LT`
+* `r2` `R2` `rt` `RT`
+* `l3` `L3` `ls` `LS`
+* `r3` `R3` `rs` `RS`
 
 ## Feedback
 
