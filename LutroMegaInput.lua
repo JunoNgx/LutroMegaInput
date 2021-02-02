@@ -72,8 +72,8 @@ function lmi:init(configs)
 end
 
 function lmi:update()
-    for pid = 1, self.padCount do
-        for keyId, keyStateData in pairs(self.keyData[pid]) do
+    for padId = 1, self.padCount do
+        for keyId, keyStateData in pairs(self.keyData[padId]) do
 
             if keyStateData.isWiping then
                 -- Disable input while wiping
@@ -83,7 +83,7 @@ function lmi:update()
                 keyStateData.justReleased = false
 
                 -- Wiping is completed when key is released
-                if not lutro.joystick.isDown(pid, keyId) then
+                if not lutro.joystick.isDown(padId, keyId) then
                     keyStateData.isWiping = false
                 end
 
@@ -94,19 +94,19 @@ function lmi:update()
                 -- indicate a new change, a button is just pressed or released
                 -- justPresesd or justReleased value will be changed for the rest
                 -- of this frame and the early portion of the next frame
-                if not keyStateData.isDown and lutro.joystick.isDown(pid, keyId) then
+                if not keyStateData.isDown and lutro.joystick.isDown(padId, keyId) then
                     keyStateData.justPressed = true
-                elseif keyStateData.isDown and not lutro.joystick.isDown(pid, keyId) then
+                elseif keyStateData.isDown and not lutro.joystick.isDown(padId, keyId) then
                     keyStateData.justReleased = true
                 -- Otherwise matching states indicate that the button is already
                 -- stabilised in this frame, meaing that justPressed and justReleased
                 -- are no longer valid
-                elseif keyStateData.isDown == lutro.joystick.isDown(pid, keyId) then
+                elseif keyStateData.isDown == lutro.joystick.isDown(padId, keyId) then
                     keyStateData.justPressed = false
                     keyStateData.justReleased = false
                 end
                 
-                keyStateData.isDown = lutro.joystick.isDown(pid, keyId)
+                keyStateData.isDown = lutro.joystick.isDown(padId, keyId)
             end
 
         end
@@ -121,14 +121,14 @@ function lmi:setPadCount(newPadCount)
     self.padCount = newPadCount;
 
     -- Create the table of keys and their state data for each controller
-    for pid = 1, self.padCount do
+    for padId = 1, self.padCount do
 
-        if self.keyData[pid] == nil then
-            self.keyData[pid] = {}
+        if self.keyData[padId] == nil then
+            self.keyData[padId] = {}
 
             for _, keycode in pairs(self.keyIdsInUse) do
 
-                self.keyData[pid][KEYS[keycode]] = {
+                self.keyData[padId][KEYS[keycode]] = {
                     isDown = false,
                     justPressed = false,
                     justReleased = false,
@@ -142,18 +142,18 @@ end
 -- keycode: (string) the keycode of button as a string. Does not necessary have
 --  to correspond to the declared keys in the initialisation. As long as the keyId
 --  it refers to is the same, it is acceptable.
--- pid: (number, optional) the id of the controller. If omitted, any keypress
+-- padId: (number, optional) the id of the controller. If omitted, any keypress
 --  event from any active controller (subjected to self.padCount) will register.
 --  This is intentionally useful in some scenarios, such as configuring the
 --  settings of a match, where all players should participate.
 
 -- Whether the button is being held down in the current frame.
-function lmi:isDown(keycode, pid)
-    if pid then
-        return self.keyData[pid][KEYS[keycode]].isDown
+function lmi:isDown(keycode, padId)
+    if padId then
+        return self.keyData[padId][KEYS[keycode]].isDown
     else
-        for ipid = 1, self.padCount do
-            if self.keyData[ipid][KEYS[keycode]].isDown then return true end
+        for padId = 1, self.padCount do
+            if self.keyData[padId][KEYS[keycode]].isDown then return true end
         end
 
         return false
@@ -161,12 +161,12 @@ function lmi:isDown(keycode, pid)
 end
 
 -- Whether this button has just been pressed. The will return true for only one frame.
-function lmi:justPressed(keycode, pid)
-    if pid then
-        return self.keyData[pid][KEYS[keycode]].justPressed
+function lmi:justPressed(keycode, padId)
+    if padId then
+        return self.keyData[padId][KEYS[keycode]].justPressed
     else
-        for ipid = 1, self.padCount do
-            if self.keyData[ipid][KEYS[keycode]].justPressed then return true end
+        for padId = 1, self.padCount do
+            if self.keyData[padId][KEYS[keycode]].justPressed then return true end
         end
 
         return false
@@ -174,12 +174,12 @@ function lmi:justPressed(keycode, pid)
 end
 
 -- Whether this button has just been released. The will return true for only one frame.
-function lmi:justReleased(keycode, pid)
-    if pid then
-        return self.keyData[pid][KEYS[keycode]].justReleased
+function lmi:justReleased(keycode, padId)
+    if padId then
+        return self.keyData[padId][KEYS[keycode]].justReleased
     else
-        for ipid = 1, self.padCount do
-            if self.keyData[ipid][KEYS[keycode]].justReleased then return true end
+        for padId = 1, self.padCount do
+            if self.keyData[padId][KEYS[keycode]].justReleased then return true end
         end
 
         return false
@@ -189,8 +189,8 @@ end
 -- Initiate ignoring all keypress event until each button is released and repressed.
 -- This is particular useful for avoiding accidental triggers during state transitions.
 function lmi:wipeStates()
-    for pid = 1, self.padCount do
-        for _, keyStateData in pairs(self.keyData[pid]) do
+    for padId = 1, self.padCount do
+        for _, keyStateData in pairs(self.keyData[padId]) do
             keyStateData.isWiping = true
         end
     end
